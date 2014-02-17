@@ -1,0 +1,14 @@
+Fortran 90 code to compute eigenvalues and eigenvectors of a two body
+problem with a matter density dependent contact residual interaction
+in 1D. Three different bases for continuum discretization:
+
+Harmonic Oscillator
+
+Transformed Harmonic Oscillator
+
+Box
+
+
+Makes use of lapack95, minpack and intlib libraries.
+
+by Currix TM

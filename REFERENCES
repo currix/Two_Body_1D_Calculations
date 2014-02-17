@@ -1,0 +1,42 @@
+MINPACK
+
+1
+Jorge More, Burton Garbow, Kenneth Hillstrom,
+User Guide for MINPACK-1,
+Technical Report ANL-80-74,
+Argonne National Laboratory, 1980.
+
+2
+Jorge More, Danny Sorenson, Burton Garbow, Kenneth Hillstrom,
+The MINPACK Project,
+in Sources and Development of Mathematical Software,
+edited by Wayne Cowell,
+Prentice-Hall, 1984,
+ISBN: 0-13-823501-5,
+LC: QA76.95.S68.
+
+
+
+INTLIB
+
+1
+Reference:
+Philip Davis and Philip Rabinowitz,
+Methods of Numerical Integration,
+Blaisdell Publishing, 1967.
+
+
+
+LAPACK95
+
+1
+LAPACK95 Users' Guide
+Vincent Allan Barker et al.
+
+Type	Book [Author]
+Year	2001
+Publisher	SIAM, Society for Industrial and Applied Mathematics
+Address	3600 University City Science Center, Philadelphia, PA 19104-2688, USA
+Series	SIAM: Software, Environments and Tools
+ISBN / ISSN	ISBN 0-89871-504-0 (pbk.)
+Publication link	http://www.netlib.org/lapack95/lug95/

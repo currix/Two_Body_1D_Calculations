@@ -1,0 +1,171 @@
+#!/usr/bin/perl
+#
+# Perl script to launch for different N values 
+# the programs for a 2-body 1D contact residual
+# interaction problem.
+#
+# by Currix TM
+#
+use strict;
+use warnings;
+#
+use Getopt::Std;
+# Switches:
+my %options;
+getopts("hdDRp:e:s:",\%options);
+#
+# Temporary files
+use File::Temp qw/ tempfile /;
+#
+(my $prgname) = $0 =~ m#.*/(.+$)#;
+#
+#
+my $usemessage = <<"EOF";
+
+ Usage: $prgname [-s n_2body_states] [-p pathname] [-e prgname] [-dD] \
+                                         Nmin Nmax Nstep filein
+        $prgname [-s n_2body_states] [-p pathname] [-e prgname] [-dD] -R \
+                                         xmin xmax xstep filein
+        $prgname -h
+
+ Options:
+          h : help message
+          d : debugging output
+          e : fortran program name
+          p : fortran program path (necessary if program out of \$PATH)
+          D : calculate anomalous density integral(s)
+          R : variation of x_box in the ISQW case
+          s : number of 2 body eigenvectors (n_2body_states) considered.
+              If not provided takes the value from filein.
+EOF
+#
+die "\n\t Perl script to launch for different N or X values programs 
+solving a 1D 2-body contact residual interaction problem.\n
+     by Currix TM\n\n$usemessage" if ($options{"h"});
+#
+# Paths and program
+my $bin_path = "";
+$bin_path = $options{"p"} if ($options{"p"});
+$prgname = "wsaxon_2body_1D_HO";
+$prgname = $options{"e"} if ($options{"e"});
+#
+die "$usemessage" if ($#ARGV < 3 );
+#
+my $Nm = shift(@ARGV); # xmin if ($options{"R"})
+my $NM = shift(@ARGV); # xmax if ($options{"R"})
+my $Ns = shift(@ARGV); # xstep if ($options{"R"})
+#
+my $filein = shift(@ARGV);
+#
+my @energylines;
+my @deltarhoint;
+#my $fileout = "none";
+#$fileout = shift(@ARGV) if ($#ARGV == 0);
+#
+if ($options{"d"}) {
+  print "Nmin = $Nm ; NMax = $NM ; Nstep = $Ns\n";
+  print "filein = $filein\n";	# fileout = $fileout\n";
+}
+#
+open (FLIN,"<$filein") or die "Cannot open file $filein\n";
+#
+my @flin;
+while (<FLIN>) {
+  # Make iprint = 0
+  if (/^(.*iprint\s*=\s*)(\d+)(.*$)/i) {
+    push @flin, $1."0".$3."\n";
+  } else {
+    if ($options{"s"} && /(^.*dim_eig2body\s*=\s*)\d+(.*$)/i) {
+      push @flin, $1.$options{"s"}.$2."\n";
+      print "Changing number of states. New line:\n"."\t".$1.$options{"s"}.$2."\n" if ($options{"d"});
+    } else {
+      push @flin, $_;
+    }
+  }
+}
+#
+for (my $nval = $Nm; $nval <= $NM; $nval += $Ns) { # $nval is N in general or X_b if $options{"R"} is set
+  print "Evaluating input value = $nval\n" if ($options{"d"});
+  &energies($nval,\@flin);
+}
+#
+# Print Results
+# Energy
+print "Two-body system energies:\n" if ($options{"d"});
+foreach (@energylines) {
+  print $_;
+}
+# Anomalous density
+if ($options{"D"}) {
+  print "\n"; 
+  print "Two-body system anomalous densities:\n" if ($options{"d"});
+  foreach (@deltarhoint) {
+    print $_;
+  }
+}
+###################################################################
+sub energies {
+  #
+  my $input_val = shift; # N or X_b value
+  my $ref = shift; # Ref to array with input file info
+  #
+  # open temporary file
+  my ($fh, $tmpname) = tempfile("currixXXXX", DIR => "");
+  #
+  # Modify Input File
+  unless ($options{"R"}) { # Modify N value (HO, THO, and BOX cases)
+    foreach (@$ref) {
+      if (/^(.*dim_1b_.*HO\s*=\s*)(\d+)(.*\/)$/i or /^(.*dim_1b_BOX\s*=\s*)(\d+)(.*\/)$/i) {
+	print $fh $1.$input_val.$3."\n";
+	#
+        print "New line: ".$1.$input_val.$3."\n" if ($options{"d"});
+	#
+      } else {
+	print $fh $_;
+      }
+    }
+  } else { # ISQW Box case
+    foreach (@$ref) {
+      if (/^(.*x_min\s*=\s*)(\S+)(\s*,\s*.x_max\s*=\s*)(\S+)(\s*\/)$/i) {
+	print $fh $1.-$input_val.$3.$input_val.$5."\n";
+	#
+        print "New line: ".$1.-$input_val.$3.$input_val.$5."\n" if ($options{"d"});
+	#
+      } else {
+	print $fh $_;
+      }
+    }
+  }
+  #
+  my @output;
+  if ($options{"d"}) {
+    @output = `$bin_path/$prgname < $tmpname`;
+  } else {
+    @output = `$bin_path/$prgname < $tmpname 2> /dev/null`;
+  }
+  #
+  # First line has dim_2body
+  my $dim_2body;
+  if ($output[0] =~ /^\s*(\d+)\s*.*/) {
+    $dim_2body = $1;
+  }  else {
+    die "Error reading dim_2body\n";
+  }
+  #
+  push @energylines, " $input_val $dim_2body $output[1]";
+  #
+  if ($options{"D"}) {
+    my $anom_density_vals = " $input_val";
+    # get anomalous density states
+    foreach (@output[3..$#output]) {
+      if (/\s+\d+\s+(\S+)\s+.*/) {
+        $anom_density_vals .= "  ".$1;
+      }
+      last if (/TOTAL ANOM/i);
+    }
+    # Deltarho values
+    push @deltarhoint, $anom_density_vals."\n";
+  }
+  #   Delete temporary file
+  unlink $tmpname;
+}
