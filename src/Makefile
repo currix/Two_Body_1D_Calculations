@@ -43,9 +43,17 @@ NAGLIB = -L/usr/local/lib/NAG -lnag
 LIBS     = $(NAGLIB) $(LAPACK95) $(LAPACK77) $(BLAS)
 
 all: HO THO ISQW
+all_static: HO_static THO_static ISQW_static
+#
 HO: wsaxon_HO_2body_1D
+HO_static: wsaxon_HO_2body_1D_static
+#
 THO: wsaxon_THO_2body_1D
+THO_static: wsaxon_THO_2body_1D_static
+#
 ISQW: wsaxon_ISQW_2body_1D
+ISQW_static: wsaxon_ISQW_2body_1D_static
+#
 .PHONY : all
 #
 # Standard compilation rules
@@ -62,12 +70,18 @@ ISQW: wsaxon_ISQW_2body_1D
 #####################################################################
 wsaxon_HO_2body_1D: $(2body_1D_HO_wsaxon_OBJ)
 	$(FC) -o $(BINPATH)/wsaxon_2body_1D_HO  $(2body_1D_HO_wsaxon_OBJ) $(LIBS) 
+wsaxon_HO_2body_1D_static: $(2body_1D_HO_wsaxon_OBJ)
+	$(FC) -static -o $(BINPATH)/wsaxon_2body_1D_HO  $(2body_1D_HO_wsaxon_OBJ) $(LIBS) 
 #####################################################################
 wsaxon_THO_2body_1D: $(2body_1D_THO_wsaxon_OBJ)
 	$(FC) -o $(BINPATH)/wsaxon_2body_1D_THO  $(2body_1D_THO_wsaxon_OBJ) $(LIBS) 
+wsaxon_THO_2body_1D_static: $(2body_1D_THO_wsaxon_OBJ)
+	$(FC) -static -o $(BINPATH)/wsaxon_2body_1D_THO  $(2body_1D_THO_wsaxon_OBJ) $(LIBS) 
 ####################################################################
 wsaxon_ISQW_2body_1D: $(2body_1D_ISQW_wsaxon_OBJ)
 	$(FC) -o $(BINPATH)/wsaxon_2body_1D_ISQW  $(2body_1D_ISQW_wsaxon_OBJ) $(LIBS) 
+wsaxon_ISQW_2body_1D_static: $(2body_1D_ISQW_wsaxon_OBJ)
+	$(FC) -static -o $(BINPATH)/wsaxon_2body_1D_ISQW  $(2body_1D_ISQW_wsaxon_OBJ) $(LIBS) 
 #####################################################################
 clean:
 	@rm -f $(2body_1D_HO_wsaxon_OBJ) $(2body_1D_THO_wsaxon_OBJ) $(2body_1D_ISQW_wsaxon_OBJ)
