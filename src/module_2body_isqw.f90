@@ -358,12 +358,12 @@ CONTAINS
     !
   CONTAINS
     !
-    REAL FUNCTION FX2SQW(I, J)
+    FUNCTION FX2SQW(I, J)
       !
       IMPLICIT NONE
       !
       INTEGER(KIND = I4B), INTENT(IN) :: I, J
-      !INTEGER(KIND = I4B),DIMENSION(:,:), INTENT(IN) :: two_body_bas
+      REAL(KIND = DP) :: FX2SQW
       !
       !REAL(KIND = DP), DIMENSION(:,:), INTENT(IN) :: AVECSQW
       !
